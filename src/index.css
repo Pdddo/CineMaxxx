@@ -1,0 +1,6 @@
+@import url('https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+Antique:wght@400;500;700;900&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Zen Kaku Gothic Antique", ui-sans-serif, system-ui, sans-serif;
+}
