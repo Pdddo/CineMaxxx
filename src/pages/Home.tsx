@@ -2,9 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { apiFetch } from '../utils/api';
 import type { Movie, Show } from '../types';
-import { GlassCard } from '../components/ui/GlassCard';
-import { Button } from '../components/ui/Button';
-import { Calendar, Clock, Ticket } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 import { motion } from 'motion/react';
 
 export const Home: React.FC = () => {
@@ -12,6 +10,8 @@ export const Home: React.FC = () => {
   const [shows, setShows] = useState<Show[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -33,68 +33,46 @@ export const Home: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="flex h-[calc(100vh-4rem)] items-center justify-center">
-        <div className="h-12 w-12 animate-spin rounded-full border-4 border-purple-500 border-t-transparent"></div>
+      <div className="flex h-[calc(100vh-4rem)] items-center justify-center bg-black">
+        <div className="h-12 w-12 animate-spin rounded-full border-4 border-[#FF6900] border-t-transparent"></div>
       </div>
     );
   }
 
-  // Get active movies that have shows
-  const moviesWithShows = movies.filter(movie => shows.some(show => show.movie_id === movie.id));
+  // Get active movies that have shows, or if empty just show movies for design display purposes
+  // To match the mock design, we'll display movies regardless if they have shows, 
+  // but button will link to the first show if available
+  const displayMovies = movies.length > 0 ? movies : [];
+  const totalPages = Math.ceil(displayMovies.length / itemsPerPage);
+  
+  const currentMovies = displayMovies.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   return (
-    <div className="min-h-screen pb-12">
-      {/* Hero Banner Section */}
-      <div className="relative h-[60vh] w-full overflow-hidden flex items-center justify-center">
-        <div className="absolute inset-0 z-0">
-           {moviesWithShows.length > 0 && moviesWithShows[0].poster_url ? (
-             <img src={moviesWithShows[0].poster_url} alt="Hero" className="w-full h-full object-cover opacity-40 blur-sm" />
-           ) : (
-             <div className="w-full h-full bg-gradient-to-br from-purple-900/40 to-slate-900/90"></div>
-           )}
-        </div>
-        <div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-transparent to-transparent z-10"></div>
+    <div className="min-h-screen bg-black text-white pb-12 pt-8 font-sans">
+      <div className="max-w-6xl mx-auto px-4">
         
-        <div className="relative z-20 text-center px-4 max-w-4xl mx-auto">
-          <motion.h1 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-5xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-cyan-400 tracking-tighter mb-6"
-          >
-            PENGALAMAN SINEMA <br/> TANPA BATAS
-          </motion.h1>
-          <motion.p 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            className="text-lg md:text-xl text-slate-300 mb-8"
-          >
-            Pesan tiket bioskop dengan mudah, cepat, dan nyaman. Rasakan sensasi antarmuka masa depan.
-          </motion.p>
-        </div>
-      </div>
-
-      <div className="container mx-auto px-4 -mt-16 relative z-30">
         {error && (
-          <div className="bg-red-500/10 border border-red-500/50 text-red-400 p-4 rounded-xl mb-8 text-center backdrop-blur-md">
+          <div className="bg-red-500/10 border border-red-500/50 text-red-400 p-4 rounded-xl mb-8 text-center">
             {error}
           </div>
         )}
 
-        <h2 className="text-3xl font-bold mb-8 flex items-center gap-3">
-          <span className="w-2 h-8 bg-purple-500 rounded-full inline-block"></span>
-          Sedang Tayang
-        </h2>
+        <h2 className="text-3xl font-bold mb-8">All Shows</h2>
 
-        {moviesWithShows.length === 0 && !error ? (
-          <GlassCard className="p-12 text-center text-slate-400">
-            <Ticket className="w-16 h-16 mx-auto mb-4 opacity-50" />
-            <p className="text-lg">Belum ada jadwal tayang saat ini.</p>
-          </GlassCard>
+        {displayMovies.length === 0 && !error ? (
+          <div className="p-12 text-center text-slate-500 border border-slate-800 rounded-lg">
+            <p className="text-lg">Belum ada film tayang saat ini.</p>
+          </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-            {moviesWithShows.map((movie, idx) => {
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-x-8 gap-y-12">
+            {currentMovies.map((movie, idx) => {
               const movieShows = shows.filter(s => s.movie_id === movie.id);
+              const posterSrc = movie.poster_url?.startsWith('/static') 
+                ? `http://localhost:8000${movie.poster_url}` 
+                : movie.poster_url;
               
               return (
                 <motion.div
@@ -102,67 +80,95 @@ export const Home: React.FC = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.1 }}
+                  className="flex flex-col"
                 >
-                  <GlassCard className="h-full flex flex-col overflow-hidden group">
-                    <div className="relative aspect-[2/3] overflow-hidden bg-slate-800">
-                      {movie.poster_url ? (
-                        <img 
-                          src={movie.poster_url} 
-                          alt={movie.judul} 
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-slate-600">No Poster</div>
-                      )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-80"></div>
-                      <div className="absolute bottom-4 left-4 right-4">
-                        <h3 className="text-xl font-bold text-white mb-2 line-clamp-2">{movie.judul}</h3>
-                        <div className="flex items-center gap-2 text-sm text-purple-300">
-                          <Clock className="w-4 h-4" />
-                          <span>{movie.durasi_menit} Menit</span>
-                        </div>
+                  <div className="relative aspect-[3/4] overflow-hidden rounded-md bg-slate-900 shadow-lg">
+                    {movie.poster_url ? (
+                      <img 
+                        src={posterSrc} 
+                        alt={movie.judul} 
+                        className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex flex-col items-center justify-center text-slate-600 p-4 text-center">
+                        <span className="text-xl font-bold text-slate-500 mb-2">{movie.judul}</span>
+                        <span className="text-sm">No Poster</span>
                       </div>
+                    )}
+                    
+                    {/* Info badge */}
+                    <div className="absolute top-3 right-3 w-8 h-8 bg-black/60 backdrop-blur-md rounded-full flex items-center justify-center border border-white/20">
+                      <AlertCircle className="w-5 h-5 text-yellow-500" />
                     </div>
+                  </div>
 
-                    <div className="p-5 flex-grow flex flex-col justify-between space-y-4">
-                      <div>
-                        <p className="text-sm text-slate-400 line-clamp-3 mb-4">
-                          {movie.sinopsis}
-                        </p>
-                        <div className="space-y-2">
-                          <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1">
-                            <Calendar className="w-3 h-3" /> Jadwal Tersedia
-                          </h4>
-                          <div className="flex flex-wrap gap-2">
-                            {movieShows.slice(0, 3).map(show => {
-                              const time = new Date(show.jam_tayang).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-                              return (
-                                <Link key={show.id} to={`/show/${show.id}`}>
-                                  <span className="inline-block px-2 py-1 text-xs bg-purple-500/20 text-purple-300 rounded hover:bg-purple-500/40 border border-purple-500/30 transition-colors">
-                                    {time}
-                                  </span>
-                                </Link>
-                              );
-                            })}
-                            {movieShows.length > 3 && (
-                               <span className="inline-block px-2 py-1 text-xs bg-slate-800 text-slate-400 rounded">+{movieShows.length - 3}</span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-
-                      <Link to={`/show/${movieShows[0]?.id}`} className="block mt-4">
-                        <Button className="w-full group-hover:shadow-[0_0_20px_rgba(147,51,234,0.6)]">
-                          Pesan Tiket
-                        </Button>
-                      </Link>
-                    </div>
-                  </GlassCard>
+                  <Link 
+                    to={movieShows.length > 0 ? `/show/${movieShows[0].id}` : `#`}
+                    className={`mt-4 w-full h-10 flex items-center justify-center rounded-sm font-bold text-black transition-colors ${
+                      movieShows.length > 0 ? 'bg-[#FF6900] hover:bg-[#e55e00]' : 'bg-slate-600 cursor-not-allowed'
+                    }`}
+                    onClick={(e) => {
+                      if (movieShows.length === 0) e.preventDefault();
+                    }}
+                  >
+                    {movieShows.length > 0 ? 'BUY NOW' : 'COMING SOON'}
+                  </Link>
                 </motion.div>
               );
             })}
           </div>
         )}
+
+        {/* Pagination Functional */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-center gap-4 mt-16 mb-16 text-slate-400 font-medium tracking-widest text-sm">
+            <span 
+              className={`cursor-pointer ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : 'hover:text-white'}`}
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+            >
+              &lt;
+            </span>
+            
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+              <span 
+                key={page}
+                className={`cursor-pointer ${currentPage === page ? 'text-[#FF6900] font-bold border-b-2 border-[#FF6900]' : 'hover:text-white'}`}
+                onClick={() => {
+                  setCurrentPage(page);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+              >
+                {page}
+              </span>
+            ))}
+
+            <span 
+              className={`cursor-pointer ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : 'hover:text-white'}`}
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+            >
+              &gt;
+            </span>
+          </div>
+        )}
+
+        {/* Seating Experience Section */}
+        <div className="mt-20">
+          <h2 className="text-3xl font-bold mb-8">
+            Seating<br/>Experience
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+            <div className="aspect-[4/3] bg-slate-800 overflow-hidden">
+              <img src="https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?w=600&q=80" alt="Seat Type 1" className="w-full h-full object-cover" />
+            </div>
+            <div className="aspect-[4/3] bg-slate-800 overflow-hidden">
+              <img src="https://images.unsplash.com/photo-1595769816263-9b910be24d5f?w=600&q=80" alt="Seat Type 2" className="w-full h-full object-cover" />
+            </div>
+            <div className="aspect-[4/3] bg-slate-800 overflow-hidden">
+              <img src="https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=600&q=80" alt="Seat Type 3" className="w-full h-full object-cover" />
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
   );

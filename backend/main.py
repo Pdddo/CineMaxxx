@@ -178,7 +178,7 @@ def get_public_movies(db: Session = Depends(database.get_db)):
     return db.query(models.Movie).all()
 
 @app.get("/api/shows", response_model=List[schemas.Show])
-def get_active_shows(db: Session = Depends(database.get_db), current_user: models.User = Depends(auth.get_current_user)):
+def get_active_shows(db: Session = Depends(database.get_db)):
     return db.query(models.Show).all()
 
 # 2. Pemilihan Kursi Interaktif
