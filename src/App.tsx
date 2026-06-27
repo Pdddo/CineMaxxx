@@ -4,6 +4,8 @@ import { Navbar } from './components/layout/Navbar';
 
 // Pages (Customer)
 import { Home } from './pages/Home';
+import { MovieDetails } from './pages/MovieDetails';
+import { ShowDetails } from './pages/ShowDetails';
 import { Login } from './pages/Login';
 import Register from './pages/Register';
 
@@ -49,10 +51,18 @@ export default function App() {
                 } 
               />
               <Route 
+                path="/movie/:id" 
+                element={
+                  <ProtectedRoute>
+                    <MovieDetails />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
                 path="/show/:id" 
                 element={
                   <ProtectedRoute>
-                    <div className="p-8 text-center">Show Details & Seat Selection Coming Soon</div>
+                    <ShowDetails />
                   </ProtectedRoute>
                 } 
               />

@@ -103,7 +103,7 @@ export const Home: React.FC = () => {
                   </div>
 
                   <Link 
-                    to={movieShows.length > 0 ? `/show/${movieShows[0].id}` : `#`}
+                    to={movieShows.length > 0 ? `/movie/${movie.id}` : `#`}
                     className={`mt-4 w-full h-10 flex items-center justify-center rounded-sm font-bold text-black transition-colors ${
                       movieShows.length > 0 ? 'bg-[#FF6900] hover:bg-[#e55e00]' : 'bg-slate-600 cursor-not-allowed'
                     }`}
