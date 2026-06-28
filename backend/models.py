@@ -19,6 +19,10 @@ class Movie(Base):
     durasi_menit = Column(Integer)
     sinopsis = Column(Text)
     poster_url = Column(String, nullable=True)
+    genre = Column(String, nullable=True)
+    rating = Column(String, nullable=True)
+    status = Column(String, default="Now Showing")
+    release_date = Column(String, nullable=True)
 
     shows = relationship("Show", back_populates="movie", cascade="all, delete-orphan")
 
@@ -26,6 +30,8 @@ class Studio(Base):
     __tablename__ = "studios"
     id = Column(Integer, primary_key=True, index=True)
     nama_studio = Column(String)
+    tipe = Column(String, default="Standard")
+    status = Column(String, default="Active")
 
     shows = relationship("Show", back_populates="studio", cascade="all, delete-orphan")
     seats = relationship("Seat", back_populates="studio", cascade="all, delete-orphan")
@@ -36,6 +42,7 @@ class Show(Base):
     movie_id = Column(Integer, ForeignKey("movies.id"))
     studio_id = Column(Integer, ForeignKey("studios.id"))
     jam_tayang = Column(DateTime)
+    harga = Column(Float, default=50000.0)
 
     movie = relationship("Movie", back_populates="shows")
     studio = relationship("Studio", back_populates="shows")

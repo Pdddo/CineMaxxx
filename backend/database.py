@@ -4,9 +4,8 @@ from sqlalchemy.ext.declarative import declarative_base
 
 # Ganti 'postgres' dan 'passwordmu' sesuai dengan kredensial PostgreSQL kamu di DBeaver
 # Format: postgresql://<username>:<password>@<host>:<port>/<nama_database>
-SQLALCHEMY_DATABASE_URL = "postgresql://postgres:rey12345@localhost:5432/Cinemaxx"
+SQLALCHEMY_DATABASE_URL = "postgresql://postgres:reski 123@localhost:5432/cinemaxxx"
 
-# Hapus argumen connect_args={"check_same_thread": False} karena itu hanya untuk SQLite
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

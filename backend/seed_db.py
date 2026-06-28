@@ -1,167 +1,170 @@
-import datetime
-import random
-from sqlalchemy.orm import Session
-from database import SessionLocal, engine
-import models
-import auth
+import sys
+import os
 
-# Buat tabel jika belum ada
-models.Base.metadata.create_all(bind=engine)
+# Ensure backend directory is in path
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+from database import engine, SessionLocal
+import models
+from auth import get_password_hash
+from datetime import datetime, timedelta
 
 def seed():
-    db: Session = SessionLocal()
+    print("Dropping all tables...")
+    models.Base.metadata.drop_all(bind=engine)
+    print("Recreating all tables...")
+    models.Base.metadata.create_all(bind=engine)
 
-    print("Membersihkan data lama untuk seed ulang secara menyeluruh...")
-    db.query(models.BookingDetail).delete()
-    db.query(models.Booking).delete()
-    db.query(models.Seat).delete()
-    db.query(models.Show).delete()
-    db.query(models.Studio).delete()
-    db.query(models.Movie).delete()
-    # Jangan hapus semua user, tapi kita bisa hapus yang dummy
-    db.query(models.User).filter(models.User.email.in_(["admin@cinemaxxx.com", "customer1@cinemaxxx.com", "customer2@cinemaxxx.com"])).delete()
-    db.commit()
+    db = SessionLocal()
 
-    print("Seeding Users...")
-    users = []
-    # 1. Admin
-    admin = models.User(
-        nama="Super Admin",
-        email="admin@cinemaxxx.com",
-        password=auth.get_password_hash("admin123"),
-        role="admin"
-    )
-    db.add(admin)
-    users.append(admin)
-
-    # 2. Customers
-    c1 = models.User(
-        nama="Budi Customer",
-        email="customer1@cinemaxxx.com",
-        password=auth.get_password_hash("customer123"),
-        role="customer"
-    )
-    c2 = models.User(
-        nama="Siti Customer",
-        email="customer2@cinemaxxx.com",
-        password=auth.get_password_hash("customer123"),
-        role="customer"
-    )
-    db.add(c1)
-    db.add(c2)
-    users.append(c1)
-    users.append(c2)
-    db.commit()
-    for u in users:
-        db.refresh(u)
-
-    print("Seeding Movies...")
-    base_movies = [
-        {"judul": "Cumajan Ji?", "durasi": 120},
-        {"judul": "Jokowi", "durasi": 110},
-        {"judul": "Life of Mia", "durasi": 95},
-        {"judul": "Love Again", "durasi": 105},
-        {"judul": "Mission: Impossible - Dead Reckoning", "durasi": 163},
-        {"judul": "Black Adam", "durasi": 125},
-        {"judul": "Avatar: The Way of Water", "durasi": 192},
-        {"judul": "Spider-Man: No Way Home", "durasi": 148}
-    ]
-
-    local_posters = [
-        "/poster_blackadam.png", "/poster_cumajanji.png", "/poster_jokowi.png",
-        "/poster_keluargasuami.png", "/poster_lifeofmia.png", "/poster_loveagain.png",
-        "/poster_mio.png", "/poster_pabrikmuwani.png", "/poster_paraperodok.png",
-        "/poster_rusdi.png"
-    ]
-
-    movies = []
-    # Generate 24 movies to test pagination
-    for i in range(1, 25):
-        base = base_movies[(i - 1) % len(base_movies)]
-        judul = f"{base['judul']} {i if i > 6 else ''}".strip()
-        
-        movie = models.Movie(
-            judul=judul,
-            durasi_menit=base["durasi"],
-            sinopsis=f"Sinopsis luar biasa dan mendebarkan untuk film {judul}. Saksikan aksi dan drama yang tak terlupakan hanya di CineMaxxx.",
-            poster_url=local_posters[(i - 1) % len(local_posters)]
+    try:
+        print("Seeding users...")
+        admin = models.User(
+            nama="Administrator", 
+            email="admin@cinemaxxx.com", 
+            password=get_password_hash("admin123"), 
+            role="admin"
         )
-        db.add(movie)
-        movies.append(movie)
-    
-    db.commit()
-    for m in movies:
-        db.refresh(m)
-
-    print("Seeding Studios and Seats...")
-    studios = []
-    for s_name in ["Studio 1 (IMAX)", "Studio 2 (Regular)", "Studio 3 (Premiere)"]:
-        studio = models.Studio(nama_studio=s_name)
-        db.add(studio)
-        studios.append(studio)
-    
-    db.commit()
-    for s in studios:
-        db.refresh(s)
-
-    all_seats = []
-    for studio in studios:
-        # Buat kursi A-H, kolom 1-9 (72 kursi)
-        for row in ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']:
-            for num in range(1, 10):
-                seat = models.Seat(studio_id=studio.id, nomor_kursi=f"{row}{num}")
-                db.add(seat)
-                all_seats.append(seat)
-    db.commit()
-
-    print("Seeding Shows...")
-    today = datetime.date.today()
-    shows = []
-    for movie in movies:
-        num_shows = random.randint(1, 3)
-        for _ in range(num_shows):
-            studio = random.choice(studios)
-            hour = random.randint(10, 22)
-            show_time = datetime.datetime.combine(today + datetime.timedelta(days=random.randint(0,2)), datetime.time(hour, 0))
-            show = models.Show(
-                movie_id=movie.id,
-                studio_id=studio.id,
-                jam_tayang=show_time
-            )
-            db.add(show)
-            shows.append(show)
-    db.commit()
-    for s in shows:
-        db.refresh(s)
-
-    print("Seeding Bookings...")
-    for _ in range(10): # 10 dummy bookings
-        show = random.choice(shows)
-        customer = random.choice([c1, c2])
-        # Cari kursi di studio show ini
-        studio_seats = [s for s in all_seats if s.studio_id == show.studio_id]
-        chosen_seats = random.sample(studio_seats, random.randint(1, 3)) # Beli 1-3 tiket
-        
-        booking = models.Booking(
-            user_id=customer.id,
-            show_id=show.id,
-            total_harga=len(chosen_seats) * 50000.0,
-            status_pembayaran="paid"
+        user = models.User(
+            nama="Customer", 
+            email="user@gmail.com", 
+            password=get_password_hash("user123"), 
+            role="customer"
         )
-        db.add(booking)
+        db.add_all([admin, user])
+        
+        print("Seeding movies...")
+        movies_data = [
+            {"judul": "Black Adam", "durasi_menit": 125, "sinopsis": "Nearly 5,000 years after he was bestowed with the almighty powers of the Egyptian gods—and imprisoned just as quickly—Black Adam is freed from his earthly tomb, ready to unleash his unique form of justice on the modern world.", "poster_url": "/poster_blackadam.png", "genre": "Action, Fantasy", "rating": "PG-13", "status": "Now Showing", "release_date": "2022-10-21"},
+            {"judul": "Love Again", "durasi_menit": 104, "sinopsis": "A young woman tries to ease the pain of her fiancé's death by sending romantic texts to his old cell phone number, and forms a connection with the man the number has been reassigned to.", "poster_url": "/poster_loveagain.png", "genre": "Romance, Comedy", "rating": "PG-13", "status": "Now Showing", "release_date": "2023-05-05"},
+            {"judul": "Life of Mia", "durasi_menit": 110, "sinopsis": "An inspiring story of Mia's journey through life, overcoming obstacles and finding her true passion in music.", "poster_url": "/poster_lifeofmia.png", "genre": "Drama", "rating": "R", "status": "Now Showing", "release_date": "2023-08-12"},
+            {"judul": "Mio", "durasi_menit": 90, "sinopsis": "An animated adventure about a little cat named Mio who embarks on a grand journey to find his family.", "poster_url": "/poster_mio.png", "genre": "Animation, Family", "rating": "G", "status": "Now Showing", "release_date": "2021-11-20"},
+            {"judul": "Jokowi", "durasi_menit": 115, "sinopsis": "A biographical drama depicting the early life and rise of the 7th President of Indonesia.", "poster_url": "/poster_jokowi.png", "genre": "Biography, Drama", "rating": "PG", "status": "Now Showing", "release_date": "2013-06-20"},
+            {"judul": "Cuma Janji", "durasi_menit": 100, "sinopsis": "Drama percintaan lokal yang mengharukan tentang kesetiaan dan janji yang tak pernah ditepati.", "poster_url": "/poster_cumajanji.png", "genre": "Drama, Romance", "rating": "PG-13", "status": "Coming Soon", "release_date": "2024-02-14"},
+        ]
+        
+        movies = []
+        for md in movies_data:
+            m = models.Movie(**md)
+            db.add(m)
+            movies.append(m)
+            
+        print("Seeding studios and seats...")
+        studios_data = [
+            {"nama_studio": "Studio 1", "tipe": "IMAX", "status": "Active"},
+            {"nama_studio": "Studio 2", "tipe": "Premium", "status": "Active"},
+            {"nama_studio": "Studio 3", "tipe": "Regular", "status": "Active"},
+        ]
+        studios = []
+        for sd in studios_data:
+            s = models.Studio(**sd)
+            db.add(s)
+            studios.append(s)
+        
+        db.commit() # Commit so we can get IDs
+        
+        # Generate Seats
+        for s in studios:
+            rows = 4 if s.tipe == "Regular" else (3 if s.tipe == "IMAX" else 2)
+            cols = 8 if s.tipe != "Premium" else 6
+            for r in range(rows):
+                for c in range(cols):
+                    row_char = chr(65 + r)
+                    seat_num = f"{row_char}{c+1}"
+                    db.add(models.Seat(studio_id=s.id, nomor_kursi=seat_num))
         db.commit()
-        db.refresh(booking)
+        
+        print("Seeding schedules (shows)...")
+        # Ensure no overlaps
+        today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        
+        # Helper to add 15 mins buffer
+        def next_time(start_dt, durasi):
+            return start_dt + timedelta(minutes=durasi + 15)
+            
+        # Studio 1 (IMAX)
+        s1_1 = today.replace(hour=10, minute=0)
+        s1_2 = next_time(s1_1, movies[0].durasi_menit) # Black Adam (125m) -> 12:20
+        s1_3 = next_time(s1_2, movies[4].durasi_menit) # Jokowi (115m) -> 14:30
+        
+        # Studio 2 (Premium)
+        s2_1 = today.replace(hour=11, minute=0)
+        s2_2 = next_time(s2_1, movies[1].durasi_menit) # Love Again (104m) -> 12:59
+        s2_3 = next_time(s2_2, movies[2].durasi_menit) # Life of Mia (110m) -> 15:04
 
-        for seat in chosen_seats:
-            detail = models.BookingDetail(
-                booking_id=booking.id,
-                seat_id=seat.id
-            )
-            db.add(detail)
-    db.commit()
+        # Studio 3 (Regular)
+        s3_1 = today.replace(hour=9, minute=30)
+        s3_2 = next_time(s3_1, movies[3].durasi_menit) # Mio (90m) -> 11:15
+        s3_3 = next_time(s3_2, movies[0].durasi_menit) # Black Adam (125m) -> 13:35
 
-    print("Database seeding (Semua Tabel) completed successfully!")
-    db.close()
+        shows_data = [
+            # IMAX
+            models.Show(movie_id=movies[0].id, studio_id=studios[0].id, jam_tayang=s1_1, harga=75000),
+            models.Show(movie_id=movies[4].id, studio_id=studios[0].id, jam_tayang=s1_2, harga=75000),
+            models.Show(movie_id=movies[0].id, studio_id=studios[0].id, jam_tayang=s1_3, harga=75000),
+            
+            # Premium
+            models.Show(movie_id=movies[1].id, studio_id=studios[1].id, jam_tayang=s2_1, harga=120000),
+            models.Show(movie_id=movies[2].id, studio_id=studios[1].id, jam_tayang=s2_2, harga=120000),
+            models.Show(movie_id=movies[1].id, studio_id=studios[1].id, jam_tayang=s2_3, harga=120000),
+            
+            # Regular
+            models.Show(movie_id=movies[3].id, studio_id=studios[2].id, jam_tayang=s3_1, harga=50000),
+            models.Show(movie_id=movies[0].id, studio_id=studios[2].id, jam_tayang=s3_2, harga=50000),
+            models.Show(movie_id=movies[3].id, studio_id=studios[2].id, jam_tayang=s3_3, harga=50000),
+        ]
+        
+        for sh in shows_data:
+            db.add(sh)
+        
+        db.commit()
+        
+        print("Seeding dummy transactions...")
+        import random
+        all_seats = db.query(models.Seat).all()
+        seats_by_studio = {}
+        for st in all_seats:
+            if st.studio_id not in seats_by_studio:
+                seats_by_studio[st.studio_id] = []
+            seats_by_studio[st.studio_id].append(st)
+            
+        for show in shows_data:
+            num_bookings = random.randint(2, 6)
+            studio_seats = seats_by_studio.get(show.studio_id, [])
+            taken_seats = set()
+            
+            for _ in range(num_bookings):
+                num_tickets = random.randint(1, 4)
+                available = [s for s in studio_seats if s.id not in taken_seats]
+                if len(available) < num_tickets:
+                    break
+                    
+                selected_seats = random.sample(available, num_tickets)
+                for s in selected_seats:
+                    taken_seats.add(s.id)
+                    
+                total_price = num_tickets * show.harga
+                booking = models.Booking(
+                    user_id=user.id,
+                    show_id=show.id,
+                    total_harga=total_price,
+                    status_pembayaran="paid"
+                )
+                db.add(booking)
+                db.flush()
+                
+                for s in selected_seats:
+                    db.add(models.BookingDetail(booking_id=booking.id, seat_id=s.id))
+                    
+        db.commit()
+        
+        print("Database seeded successfully with valid IDs starting from 1!")
+        
+    except Exception as e:
+        db.rollback()
+        print(f"Error seeding database: {e}")
+    finally:
+        db.close()
 
 if __name__ == "__main__":
     seed()

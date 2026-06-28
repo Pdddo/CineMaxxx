@@ -10,12 +10,18 @@ export interface Movie {
   judul: string;
   durasi_menit: number;
   sinopsis: string;
-  poster_url?: string; // Menyimpan URL poster setelah di-upload
+  poster_url?: string;
+  genre?: string;
+  rating?: string;
+  status?: string;
+  release_date?: string;
 }
 
 export interface Studio {
   id: number;
   nama_studio: string;
+  tipe?: string;
+  status?: string;
 }
 
 export interface Seat {
@@ -30,7 +36,7 @@ export interface Show {
   studio_id: number;
   jam_tayang: string; // ISO 8601 string
   harga: number;
-  
+
   // Optional relations that might be joined by backend
   movie?: Movie;
   studio?: Studio;
@@ -48,7 +54,7 @@ export interface Booking {
   show_id: number;
   total_harga: number;
   status_pembayaran: string; // e.g., 'PENDING', 'PAID', 'FAILED'
-  
+
   // Optional relations
   show?: Show;
   details?: BookingDetail[];

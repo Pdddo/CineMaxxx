@@ -1,74 +1,82 @@
 import React from 'react';
-import { NavLink, Routes, Route, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { LayoutDashboard, Film, Video, Users, LogOut } from 'lucide-react';
-import { Dashboard } from './Dashboard';
-import { ManageMovies } from './ManageMovies';
-import { ManageShows } from './ManageShows';
-import { ManageUsers } from './ManageUsers';
+import { User, LogOut, Globe } from 'lucide-react';
 
-export const AdminLayout: React.FC = () => {
+export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLogout = () => {
     logout();
-    navigate('/');
+    navigate('/login');
   };
 
-  const navItems = [
-    { path: '/admin', label: 'Dashboard', icon: <LayoutDashboard className="w-5 h-5" />, exact: true },
-    { path: '/admin/movies', label: 'Kelola Film', icon: <Film className="w-5 h-5" /> },
-    { path: '/admin/shows', label: 'Kelola Jadwal', icon: <Video className="w-5 h-5" /> },
-    { path: '/admin/users', label: 'Data Pengguna', icon: <Users className="w-5 h-5" /> },
+  const navLinks = [
+    { name: 'Library', path: '/admin/library' },
+    { name: 'Studios', path: '/admin/studios' },
+    { name: 'Schedules', path: '/admin/schedules' },
+    { name: 'Sales Reports', path: '/admin/reports' },
   ];
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] bg-[#020617] border-t border-white/5">
-      {/* Sidebar */}
-      <aside className="w-64 border-r border-white/10 bg-[#0f172a]/50 backdrop-blur-md flex flex-col">
-        <div className="p-6 border-b border-white/10 flex items-center gap-3">
-          <img src="/logo_cinemaxxx.png" alt="CineMaxxx Logo" className="h-16 w-auto object-contain" />
-          <div>
-            <h2 className="text-lg font-bold text-white tracking-wider leading-none">Admin Panel</h2>
-            <p className="text-xs text-slate-400 mt-1">CineMaxxx Management</p>
+    <div className="min-h-screen bg-[#111111] text-slate-200 font-sans">
+      {/* Admin Navbar */}
+      <nav className="border-b border-white/10 bg-[#111111] text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between h-20">
+            {/* Logo */}
+            <div className="flex-shrink-0 flex items-center">
+              <Link to="/admin" className="flex items-center gap-2">
+                <img src="/logo_cinemaxxx.png" alt="CineMaxxx Logo" className="h-16 md:h-24 w-auto object-contain py-2" />
+              </Link>
+            </div>
+
+            {/* Right side navigation */}
+            <div className="flex items-center">
+              {/* Navigation Links */}
+              <div className="hidden md:flex items-center gap-8 text-[#FF6900] text-sm font-medium mr-8">
+                {navLinks.map((link) => (
+                  <Link
+                    key={link.name}
+                    to={link.path}
+                    className={`transition-colors ${location.pathname.includes(link.path)
+                        ? 'text-[#FF6900] border-b border-[#FF6900] pb-1'
+                        : 'text-[#B4886B] hover:text-[#FF6900]'
+                      }`}
+                  >
+                    {link.name}
+                  </Link>
+                ))}
+              </div>
+
+              {/* Divider */}
+              <div className="h-6 w-px bg-white/20 mr-6 hidden md:block"></div>
+
+              {/* Admin Profile */}
+              <div className="flex items-center gap-4 text-[#FF6900]">
+                <span className="text-sm font-medium hidden sm:block">Admin</span>
+                <Link to="/" className="p-1 hover:bg-white/10 rounded transition-colors text-stone-400 hover:text-white" title="Back to Customer Site">
+                  <Globe size={18} />
+                </Link>
+                <User size={18} />
+                <button
+                  onClick={handleLogout}
+                  className="p-1 hover:bg-white/10 rounded transition-colors text-stone-400 hover:text-white"
+                  title="Logout"
+                >
+                  <LogOut size={18} />
+                </button>
+              </div>
+            </div>
           </div>
         </div>
-        <nav className="flex-1 p-4 space-y-2">
-          {navItems.map((item) => (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              end={item.exact}
-              className={({ isActive }) =>
-                `flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium text-sm
-                ${isActive ? 'bg-purple-600 text-white shadow-[0_0_15px_rgba(147,51,234,0.3)]' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`
-              }
-            >
-              {item.icon}
-              {item.label}
-            </NavLink>
-          ))}
-        </nav>
-        <div className="p-4 border-t border-white/10">
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-3 px-4 py-3 w-full rounded-lg text-slate-400 hover:bg-red-500/10 hover:text-red-400 transition-colors font-medium text-sm"
-          >
-            <LogOut className="w-5 h-5" />
-            Keluar
-          </button>
-        </div>
-      </aside>
+      </nav>
 
       {/* Main Content Area */}
-      <main className="flex-1 overflow-y-auto p-8">
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/movies" element={<ManageMovies />} />
-          <Route path="/shows" element={<ManageShows />} />
-          <Route path="/users" element={<ManageUsers />} />
-        </Routes>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {children}
       </main>
     </div>
   );

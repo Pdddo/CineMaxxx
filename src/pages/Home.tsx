@@ -39,10 +39,14 @@ export const Home: React.FC = () => {
     );
   }
 
-  // Get active movies that have shows, or if empty just show movies for design display purposes
-  // To match the mock design, we'll display movies regardless if they have shows, 
-  // but button will link to the first show if available
-  const displayMovies = movies.length > 0 ? movies : [];
+  // Sort movies so that those with active schedules (shows) appear first
+  const displayMovies = [...movies].sort((a, b) => {
+    const aHasShows = shows.some(s => s.movie_id === a.id);
+    const bHasShows = shows.some(s => s.movie_id === b.id);
+    if (aHasShows && !bHasShows) return -1;
+    if (!aHasShows && bHasShows) return 1;
+    return 0;
+  });
   const totalPages = Math.ceil(displayMovies.length / itemsPerPage);
   
   const currentMovies = displayMovies.slice(
@@ -91,9 +95,7 @@ export const Home: React.FC = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-x-8 gap-y-12">
             {currentMovies.map((movie, idx) => {
               const movieShows = shows.filter(s => s.movie_id === movie.id);
-              const posterSrc = movie.poster_url?.startsWith('/static') 
-                ? `http://localhost:8000${movie.poster_url}` 
-                : movie.poster_url;
+              const posterSrc = movie.poster_url;
               
               return (
                 <motion.div

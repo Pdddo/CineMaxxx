@@ -11,6 +11,15 @@ import { Login } from './pages/Login';
 import Register from './pages/Register';
 import { Checkout } from './pages/Checkout';
 import { Tickets } from './pages/Tickets';
+import { TicketDetails } from './pages/TicketDetails';
+import { Profile } from './pages/Profile';
+
+// Admin Pages
+import { AdminLayout } from './pages/admin/AdminLayout';
+import { SalesReports } from './pages/admin/SalesReports';
+import { ManageMovies } from './pages/ManageMovies';
+import { ManageStudios } from './pages/ManageStudios';
+import { ManageShows } from './pages/admin/ManageShows';
 
 // Customer Protected Routes Wrapper
 const ProtectedRoute = ({ children, requireAdmin }: { children: React.ReactNode, requireAdmin?: boolean }) => {
@@ -50,7 +59,7 @@ export default function App() {
                   path="/profile" 
                   element={
                     <ProtectedRoute>
-                      <div className="p-8 text-center">Profile Page Coming Soon</div>
+                      <Profile />
                     </ProtectedRoute>
                   } 
                 />
@@ -59,6 +68,14 @@ export default function App() {
                   element={
                     <ProtectedRoute>
                       <Tickets />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/ticket/:id" 
+                  element={
+                    <ProtectedRoute>
+                      <TicketDetails />
                     </ProtectedRoute>
                   } 
                 />
@@ -92,7 +109,15 @@ export default function App() {
                   path="/admin/*" 
                   element={
                     <ProtectedRoute requireAdmin>
-                      <div className="p-8 text-center text-red-400">Admin Layout Coming Soon</div>
+                      <AdminLayout>
+                        <Routes>
+                          <Route path="library" element={<ManageMovies />} />
+                          <Route path="studios" element={<ManageStudios />} />
+                          <Route path="schedules" element={<ManageShows />} />
+                          <Route path="reports" element={<SalesReports />} />
+                          <Route path="*" element={<SalesReports />} />
+                        </Routes>
+                      </AdminLayout>
                     </ProtectedRoute>
                   } 
                 />

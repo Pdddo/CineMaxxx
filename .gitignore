@@ -25,6 +25,9 @@ dist-ssr
 
 # Python
 __pycache__/
+**/venv/
 backend/venv/
 venv/
-.env
+.env*
+*.env
+backend/database.py

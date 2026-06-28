@@ -35,6 +35,10 @@ class MovieBase(BaseModel):
     durasi_menit: int
     sinopsis: str
     poster_url: Optional[str] = None
+    genre: Optional[str] = None
+    rating: Optional[str] = None
+    status: Optional[str] = "Now Showing"
+    release_date: Optional[str] = None
 
 class MovieCreate(MovieBase):
     pass
@@ -47,6 +51,8 @@ class Movie(MovieBase):
 # Studio
 class StudioBase(BaseModel):
     nama_studio: str
+    tipe: Optional[str] = "Standard"
+    status: Optional[str] = "Active"
 
 class StudioCreate(StudioBase):
     pass
@@ -74,6 +80,7 @@ class ShowBase(BaseModel):
     movie_id: int
     studio_id: int
     jam_tayang: datetime
+    harga: float = 50000.0
 
 class ShowCreate(ShowBase):
     pass

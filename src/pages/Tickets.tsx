@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { apiFetch } from '../utils/api';
 import type { Booking } from '../types';
 
@@ -41,7 +42,7 @@ export const Tickets: React.FC = () => {
         ) : (
           <div className="space-y-6">
             {bookings.map(booking => (
-              <div key={booking.id} className="border border-white/20 p-6 flex flex-col md:flex-row gap-6 bg-slate-900/50 hover:bg-slate-900 transition-colors">
+              <Link to={`/ticket/${booking.id}`} key={booking.id} className="block border border-white/20 p-6 flex flex-col md:flex-row gap-6 bg-slate-900/50 hover:bg-slate-900 transition-colors">
                 {booking.show?.movie?.poster_url ? (
                   <img src={booking.show.movie.poster_url} alt="Poster" className="w-24 h-36 object-cover" />
                 ) : (
@@ -71,7 +72,7 @@ export const Tickets: React.FC = () => {
                     <span className="text-xl font-light tracking-widest">RP {booking.total_harga.toLocaleString('id-ID')}</span>
                   </div>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         )}

@@ -72,42 +72,42 @@ export const MovieDetails: React.FC = () => {
   
   // Filter shows by selected date
   const showsOnDate = shows.filter(s => new Date(s.jam_tayang).toLocaleDateString('id-ID') === selectedDate);
-  const availableLocations = Array.from(new Set(showsOnDate.map(s => s.studio?.nama_studio.split(' (')[0] || `Studio ${s.studio_id}`)));
+  const availableLocations = Array.from(new Set(showsOnDate.map(s => s.studio?.nama_studio || `Studio ${s.studio_id}`)));
   
   // If selected location is not in available locations, reset it
   if (selectedLocation && !availableLocations.includes(selectedLocation)) setSelectedLocation('');
   
   // Filter by location
   const showsAtLocation = selectedLocation 
-    ? showsOnDate.filter(s => (s.studio?.nama_studio.split(' (')[0] || `Studio ${s.studio_id}`) === selectedLocation)
+    ? showsOnDate.filter(s => (s.studio?.nama_studio || `Studio ${s.studio_id}`) === selectedLocation)
     : showsOnDate;
 
-  // Extract Types from Studio Names (e.g., "Studio 1 (IMAX)" -> "IMAX")
-  const extractType = (nama: string) => {
-    const match = nama.match(/\((.*?)\)/);
-    return match ? match[1] : 'Regular';
-  };
-  const availableTypes = Array.from(new Set(showsAtLocation.map(s => extractType(s.studio?.nama_studio || ''))));
+  // Extract Types from Studio
+  const getStudioType = (show: Show) => show.studio?.tipe || 'Regular';
   
-  if (selectedType && !availableTypes.includes(selectedType)) setSelectedType('');
+  // Auto-set selectedType based on location
+  const derivedType = showsAtLocation.length > 0 && selectedLocation ? getStudioType(showsAtLocation[0]) : '';
+  if (selectedType !== derivedType && selectedLocation) {
+     setSelectedType(derivedType);
+  } else if (!selectedLocation && selectedType !== '') {
+     setSelectedType('');
+  }
 
   // Final filtered shows
   const finalShows = selectedType
-    ? showsAtLocation.filter(s => extractType(s.studio?.nama_studio || '') === selectedType)
+    ? showsAtLocation.filter(s => getStudioType(s) === selectedType)
     : showsAtLocation;
 
   const handleBuyNow = () => {
     if (!selectedDate || !selectedLocation || !selectedType || !selectedShowId) {
-      setFormError('Semua pilihan (Date, Location, Type, dan Time) harus diisi!');
+      setFormError('Semua pilihan (Date, Studios, Type, dan Time) harus diisi!');
       return;
     }
     setFormError('');
     navigate(`/show/${selectedShowId}`);
   };
 
-  const posterSrc = movie.poster_url?.startsWith('/static') 
-    ? `http://localhost:8000${movie.poster_url}` 
-    : movie.poster_url;
+  const posterSrc = movie.poster_url;
 
   return (
     <div className="min-h-screen bg-black text-white font-sans pt-12 pb-24">
@@ -168,7 +168,7 @@ export const MovieDetails: React.FC = () => {
 
               {/* Location */}
               <div className="grid grid-cols-12 items-center gap-4">
-                <span className="col-span-3 text-slate-300">Location</span>
+                <span className="col-span-3 text-slate-300">Studios</span>
                 <span className="col-span-1 text-slate-300">:</span>
                 <div className="col-span-8">
                   <select 
@@ -179,7 +179,7 @@ export const MovieDetails: React.FC = () => {
                       setSelectedShowId(null);
                     }}
                   >
-                    <option value="">LOCATION</option>
+                    <option value="">STUDIOS</option>
                     {availableLocations.map(l => (
                       <option key={l} value={l}>{l}</option>
                     ))}
@@ -193,27 +193,24 @@ export const MovieDetails: React.FC = () => {
                 <span className="col-span-1 text-slate-300">:</span>
                 <div className="col-span-8">
                   <select 
-                    className="w-full bg-[#3d2616] text-[#FF6900] border-none rounded-md px-4 py-2 focus:ring-2 focus:ring-[#FF6900] appearance-none cursor-pointer outline-none font-medium"
+                    className="w-full bg-[#3d2616] text-[#FF6900] border-none rounded-md px-4 py-2 appearance-none cursor-not-allowed outline-none font-medium opacity-80"
                     value={selectedType}
-                    onChange={(e) => {
-                      setSelectedType(e.target.value);
-                      setSelectedShowId(null);
-                    }}
+                    disabled
                   >
                     <option value="">SEATING TYPE</option>
-                    {availableTypes.map(t => (
-                      <option key={t} value={t}>{t}</option>
-                    ))}
+                    {selectedType && <option value={selectedType}>{selectedType}</option>}
                   </select>
                 </div>
               </div>
 
               {/* Time */}
-              <div className="grid grid-cols-12 items-start gap-4 pt-2">
-                <span className="col-span-3 text-slate-300 mt-2">Time</span>
-                <span className="col-span-1 text-slate-300 mt-2">:</span>
+              <div className="grid grid-cols-12 items-center gap-4 pt-2">
+                <span className="col-span-3 text-slate-300">Time</span>
+                <span className="col-span-1 text-slate-300">:</span>
                 <div className="col-span-8">
-                  {finalShows.length === 0 ? (
+                  {!selectedLocation ? (
+                    <p className="text-slate-500 text-sm mt-2">Silakan pilih studio terlebih dahulu.</p>
+                  ) : finalShows.length === 0 ? (
                     <p className="text-slate-500 text-sm mt-2">Tidak ada jadwal tersedia.</p>
                   ) : (
                     <div className="grid grid-cols-2 gap-4">

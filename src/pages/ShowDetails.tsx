@@ -86,10 +86,34 @@ export const ShowDetails: React.FC = () => {
     );
   }
 
-  // Build grid mapping
-  // Based on 2-5-2 layout (cols 1..9, rows A..H)
-  const rows = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
-  
+  // Build grid mapping dynamically based on available seats
+  const uniqueRows = Array.from(new Set(seats.map(s => s.nomor_kursi.charAt(0)))).sort();
+  const maxCol = Math.max(...seats.map(s => parseInt(s.nomor_kursi.substring(1)) || 0), 0);
+
+  const getColBlocks = (totalCols: number) => {
+    if (totalCols === 0) return [];
+    if (totalCols <= 5) {
+       return [Array.from({length: totalCols}, (_, i) => i + 1)]; // 1 block
+    }
+    if (totalCols <= 8) {
+       // 2 blocks
+       const half = Math.floor(totalCols / 2);
+       return [
+         Array.from({length: half}, (_, i) => i + 1),
+         Array.from({length: totalCols - half}, (_, i) => i + 1 + half)
+       ];
+    }
+    // 3 blocks
+    const side = Math.max(2, Math.floor(totalCols / 5));
+    return [
+      Array.from({length: side}, (_, i) => i + 1),
+      Array.from({length: totalCols - (side * 2)}, (_, i) => i + 1 + side),
+      Array.from({length: side}, (_, i) => i + 1 + totalCols - side)
+    ];
+  };
+
+  const colBlocks = getColBlocks(maxCol);
+
   // Helper to find seat by row and col
   const getSeatData = (row: string, col: number) => {
     return seats.find(s => s.nomor_kursi === `${row}${col}`);
@@ -143,91 +167,39 @@ export const ShowDetails: React.FC = () => {
 
           {/* The Seat Grid */}
           <div className="mt-12 flex flex-col gap-6 w-full max-w-[800px] mx-auto">
-            {rows.map(row => (
+            {uniqueRows.map(row => (
               <div key={row} className="flex items-center justify-between w-full">
                 {/* Left Row Label */}
                 <div className="w-8 text-[#FF6900] font-light">{row}</div>
 
-                {/* Left Block (Cols 1-2) */}
-                <div className="flex gap-4">
-                  {[1, 2].map(col => {
-                    const seatData = getSeatData(row, col);
-                    if (!seatData) return <div key={col} className="w-8 h-8 md:w-10 md:h-10 opacity-0" />;
-                    const isSelected = selectedSeatIds.includes(seatData.seat_id);
-                    return (
-                      <button
-                        key={seatData.seat_id}
-                        disabled={seatData.is_booked}
-                        onClick={() => handleSeatClick(seatData.seat_id, seatData.is_booked)}
-                        className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center relative transition-colors ${
-                          seatData.is_booked 
-                            ? 'bg-black cursor-not-allowed'
-                            : isSelected 
-                              ? 'bg-[#FF6900]' 
-                              : 'bg-black hover:bg-slate-800 cursor-pointer'
-                        }`}
-                      >
-                        {seatData.is_booked && <X className="text-[#FF6900] w-6 h-6 stroke-[3]" />}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {/* Spacer between block 1 and 2 */}
-                <div className="w-8 md:w-12"></div>
-
-                {/* Middle Block (Cols 3-7) */}
-                <div className="flex gap-4">
-                  {[3, 4, 5, 6, 7].map(col => {
-                    const seatData = getSeatData(row, col);
-                    if (!seatData) return <div key={col} className="w-8 h-8 md:w-10 md:h-10 opacity-0" />;
-                    const isSelected = selectedSeatIds.includes(seatData.seat_id);
-                    return (
-                      <button
-                        key={seatData.seat_id}
-                        disabled={seatData.is_booked}
-                        onClick={() => handleSeatClick(seatData.seat_id, seatData.is_booked)}
-                        className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center relative transition-colors ${
-                          seatData.is_booked 
-                            ? 'bg-black cursor-not-allowed'
-                            : isSelected 
-                              ? 'bg-[#FF6900]' 
-                              : 'bg-black hover:bg-slate-800 cursor-pointer'
-                        }`}
-                      >
-                        {seatData.is_booked && <X className="text-[#FF6900] w-6 h-6 stroke-[3]" />}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {/* Spacer between block 2 and 3 */}
-                <div className="w-8 md:w-12"></div>
-
-                {/* Right Block (Cols 8-9) */}
-                <div className="flex gap-4">
-                  {[8, 9].map(col => {
-                    const seatData = getSeatData(row, col);
-                    if (!seatData) return <div key={col} className="w-8 h-8 md:w-10 md:h-10 opacity-0" />;
-                    const isSelected = selectedSeatIds.includes(seatData.seat_id);
-                    return (
-                      <button
-                        key={seatData.seat_id}
-                        disabled={seatData.is_booked}
-                        onClick={() => handleSeatClick(seatData.seat_id, seatData.is_booked)}
-                        className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center relative transition-colors ${
-                          seatData.is_booked 
-                            ? 'bg-black cursor-not-allowed'
-                            : isSelected 
-                              ? 'bg-[#FF6900]' 
-                              : 'bg-black hover:bg-slate-800 cursor-pointer'
-                        }`}
-                      >
-                        {seatData.is_booked && <X className="text-[#FF6900] w-6 h-6 stroke-[3]" />}
-                      </button>
-                    );
-                  })}
-                </div>
+                {colBlocks.map((block, bIdx) => (
+                  <React.Fragment key={bIdx}>
+                    <div className="flex gap-4">
+                      {block.map(col => {
+                        const seatData = getSeatData(row, col);
+                        if (!seatData) return <div key={col} className="w-8 h-8 md:w-10 md:h-10 opacity-0" />;
+                        const isSelected = selectedSeatIds.includes(seatData.seat_id);
+                        return (
+                          <button
+                            key={seatData.seat_id}
+                            disabled={seatData.is_booked}
+                            onClick={() => handleSeatClick(seatData.seat_id, seatData.is_booked)}
+                            className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center relative transition-colors ${
+                              seatData.is_booked 
+                                ? 'bg-black cursor-not-allowed'
+                                : isSelected 
+                                  ? 'bg-[#FF6900]' 
+                                  : 'bg-black hover:bg-slate-800 cursor-pointer'
+                            }`}
+                          >
+                            {seatData.is_booked && <X className="text-[#FF6900] w-6 h-6 stroke-[3]" />}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {bIdx < colBlocks.length - 1 && <div className="w-8 md:w-12"></div>}
+                  </React.Fragment>
+                ))}
 
                 {/* Right Row Label */}
                 <div className="w-8 text-[#FF6900] font-light text-right">{row}</div>
@@ -238,23 +210,16 @@ export const ShowDetails: React.FC = () => {
           {/* Column Number Labels (Footer of Grid) */}
           <div className="flex items-center justify-between w-full max-w-[800px] mt-6">
             <div className="w-8"></div>
-            <div className="flex gap-4">
-              {[1, 2].map(num => (
-                <div key={num} className="w-8 md:w-10 text-center text-[#FF6900] font-light">{num}</div>
-              ))}
-            </div>
-            <div className="w-8 md:w-12"></div>
-            <div className="flex gap-4">
-              {[3, 4, 5, 6, 7].map(num => (
-                <div key={num} className="w-8 md:w-10 text-center text-[#FF6900] font-light">{num}</div>
-              ))}
-            </div>
-            <div className="w-8 md:w-12"></div>
-            <div className="flex gap-4">
-              {[8, 9].map(num => (
-                <div key={num} className="w-8 md:w-10 text-center text-[#FF6900] font-light">{num}</div>
-              ))}
-            </div>
+            {colBlocks.map((block, bIdx) => (
+              <React.Fragment key={bIdx}>
+                <div className="flex gap-4">
+                  {block.map(num => (
+                    <div key={num} className="w-8 md:w-10 text-center text-[#FF6900] font-light">{num}</div>
+                  ))}
+                </div>
+                {bIdx < colBlocks.length - 1 && <div className="w-8 md:w-12"></div>}
+              </React.Fragment>
+            ))}
             <div className="w-8"></div>
           </div>
 
