@@ -27,9 +27,12 @@ export const AdminLayout: React.FC = () => {
     <div className="flex h-[calc(100vh-4rem)] bg-[#020617] border-t border-white/5">
       {/* Sidebar */}
       <aside className="w-64 border-r border-white/10 bg-[#0f172a]/50 backdrop-blur-md flex flex-col">
-        <div className="p-6 border-b border-white/10">
-          <h2 className="text-xl font-bold text-white tracking-wider">Admin Panel</h2>
-          <p className="text-xs text-slate-400 mt-1">CineMaxxx Management</p>
+        <div className="p-6 border-b border-white/10 flex items-center gap-3">
+          <img src="/logo_cinemaxxx.png" alt="CineMaxxx Logo" className="h-16 w-auto object-contain" />
+          <div>
+            <h2 className="text-lg font-bold text-white tracking-wider leading-none">Admin Panel</h2>
+            <p className="text-xs text-slate-400 mt-1">CineMaxxx Management</p>
+          </div>
         </div>
         <nav className="flex-1 p-4 space-y-2">
           {navItems.map((item) => (

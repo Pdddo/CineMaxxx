@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../ui/Button';
-import { Clapperboard, LogOut, User as UserIcon } from 'lucide-react';
+import { LogOut, User as UserIcon } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
   const { user, logout } = useAuth();
@@ -15,10 +15,9 @@ export const Navbar: React.FC = () => {
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-white/10 bg-[#020617]/80 backdrop-blur-md">
-      <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-2 text-[#FF6900] hover:text-[#e55e00] transition-colors">
-          <Clapperboard className="w-6 h-6" />
-          <span className="text-xl font-bold tracking-wider">CineMaxxx</span>
+      <div className="container mx-auto px-4 h-28 flex items-center justify-between">
+        <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+          <img src="/logo_cinemaxxx.png" alt="CineMaxxx Logo" className="h-24 w-auto object-contain" />
         </Link>
 
         <div className="flex items-center gap-4">

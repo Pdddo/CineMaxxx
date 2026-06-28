@@ -16,8 +16,6 @@ def update_posters():
         "/poster_mio.png",
         "/poster_pabrikmuwani.png",
         "/poster_paraperodok.png",
-        "/poster_promosi1.png",
-        "/poster_promosi2.png",
         "/poster_rusdi.png"
     ]
     

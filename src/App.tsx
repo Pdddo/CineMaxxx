@@ -8,6 +8,7 @@ import { MovieDetails } from './pages/MovieDetails';
 import { ShowDetails } from './pages/ShowDetails';
 import { Login } from './pages/Login';
 import Register from './pages/Register';
+import { Checkout } from './pages/Checkout';
 
 // Customer Protected Routes Wrapper
 const ProtectedRoute = ({ children, requireAdmin }: { children: React.ReactNode, requireAdmin?: boolean }) => {
@@ -70,7 +71,7 @@ export default function App() {
                 path="/checkout/:id" 
                 element={
                   <ProtectedRoute>
-                    <div className="p-8 text-center">Checkout Page Coming Soon</div>
+                    <Checkout />
                   </ProtectedRoute>
                 } 
               />

@@ -55,7 +55,7 @@ export const ShowDetails: React.FC = () => {
   const handleProceedToCheckout = () => {
     if (selectedSeatIds.length === 0) return;
     // We pass state to the checkout page using React Router's state navigation
-    navigate(`/checkout/${id}`, { state: { selectedSeatIds, show } });
+    navigate(`/checkout/${id}`, { state: { selectedSeatIds, show, seats } });
   };
 
   if (isLoading) {

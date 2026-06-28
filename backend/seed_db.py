@@ -67,18 +67,24 @@ def seed():
         {"judul": "Spider-Man: No Way Home", "durasi": 148}
     ]
 
+    local_posters = [
+        "/poster_blackadam.png", "/poster_cumajanji.png", "/poster_jokowi.png",
+        "/poster_keluargasuami.png", "/poster_lifeofmia.png", "/poster_loveagain.png",
+        "/poster_mio.png", "/poster_pabrikmuwani.png", "/poster_paraperodok.png",
+        "/poster_rusdi.png"
+    ]
+
     movies = []
     # Generate 24 movies to test pagination
     for i in range(1, 25):
         base = base_movies[(i - 1) % len(base_movies)]
         judul = f"{base['judul']} {i if i > 6 else ''}".strip()
-        poster_text = base['judul'].replace(' ', '+').replace(':', '')
         
         movie = models.Movie(
             judul=judul,
             durasi_menit=base["durasi"],
             sinopsis=f"Sinopsis luar biasa dan mendebarkan untuk film {judul}. Saksikan aksi dan drama yang tak terlupakan hanya di CineMaxxx.",
-            poster_url=f"https://placehold.co/400x600/1e1e1e/FF6900.png?text={poster_text}+{i}"
+            poster_url=local_posters[(i - 1) % len(local_posters)]
         )
         db.add(movie)
         movies.append(movie)

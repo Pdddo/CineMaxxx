@@ -48,6 +48,9 @@ export default function Register() {
       <div className="absolute inset-0 bg-[#000000]/80 backdrop-blur-sm z-0"></div>
       <GlassCard className="w-full max-w-md p-8 z-10">
         <div className="text-center mb-8">
+          <Link to="/" className="inline-block mb-4 hover:opacity-80 transition-opacity">
+            <img src="/logo_cinemaxxx.png" alt="CineMaxxx Logo" className="h-32 w-auto object-contain mx-auto" />
+          </Link>
           <h1 className="text-3xl font-bold text-white mb-2">Create Account</h1>
           <p className="text-slate-400">Join CineMaxxx today</p>
         </div>
