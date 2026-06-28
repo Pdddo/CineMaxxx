@@ -11,6 +11,7 @@ export const MovieDetails: React.FC = () => {
   const [shows, setShows] = useState<Show[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [formError, setFormError] = useState('');
 
   // Selections
   const [selectedDate, setSelectedDate] = useState<string>('');
@@ -96,9 +97,12 @@ export const MovieDetails: React.FC = () => {
     : showsAtLocation;
 
   const handleBuyNow = () => {
-    if (selectedShowId) {
-      navigate(`/show/${selectedShowId}`);
+    if (!selectedDate || !selectedLocation || !selectedType || !selectedShowId) {
+      setFormError('Semua pilihan (Date, Location, Type, dan Time) harus diisi!');
+      return;
     }
+    setFormError('');
+    navigate(`/show/${selectedShowId}`);
   };
 
   const posterSrc = movie.poster_url?.startsWith('/static') 
@@ -243,15 +247,15 @@ export const MovieDetails: React.FC = () => {
 
             </div>
             
-            <div className="mt-auto pt-16 flex justify-end">
+            <div className="mt-auto pt-16 flex flex-col items-end gap-4">
+              {formError && (
+                <div className="text-red-500 bg-red-500/10 border border-red-500/50 px-4 py-2 rounded-md text-sm">
+                  {formError}
+                </div>
+              )}
               <button 
                 onClick={handleBuyNow}
-                disabled={!selectedShowId}
-                className={`px-8 py-3 rounded-sm font-bold text-black text-sm tracking-widest transition-all ${
-                  selectedShowId 
-                    ? 'bg-white hover:bg-gray-200' 
-                    : 'bg-white/30 cursor-not-allowed'
-                }`}
+                className="px-8 py-3 rounded-sm font-bold text-black text-sm tracking-widest transition-all bg-white hover:bg-gray-200"
               >
                 BUY NOW
               </button>

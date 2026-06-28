@@ -37,7 +37,8 @@ export interface Show {
 }
 
 export interface SeatAvailability {
-  seat: Seat;
+  seat_id: number;
+  nomor_kursi: string;
   is_booked: boolean;
 }
 

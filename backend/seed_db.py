@@ -106,13 +106,12 @@ def seed():
 
     all_seats = []
     for studio in studios:
-        # Buat 30 kursi per studio
-        for i in range(1, 31):
-            row = chr(65 + (i - 1) // 10) # A, B, C
-            num = ((i - 1) % 10) + 1
-            seat = models.Seat(studio_id=studio.id, nomor_kursi=f"{row}{num}")
-            db.add(seat)
-            all_seats.append(seat)
+        # Buat kursi A-H, kolom 1-9 (72 kursi)
+        for row in ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']:
+            for num in range(1, 10):
+                seat = models.Seat(studio_id=studio.id, nomor_kursi=f"{row}{num}")
+                db.add(seat)
+                all_seats.append(seat)
     db.commit()
 
     print("Seeding Shows...")

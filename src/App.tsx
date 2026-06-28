@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { Navbar } from './components/layout/Navbar';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 // Pages (Customer)
 import { Home } from './pages/Home';
@@ -9,6 +10,7 @@ import { ShowDetails } from './pages/ShowDetails';
 import { Login } from './pages/Login';
 import Register from './pages/Register';
 import { Checkout } from './pages/Checkout';
+import { Tickets } from './pages/Tickets';
 
 // Customer Protected Routes Wrapper
 const ProtectedRoute = ({ children, requireAdmin }: { children: React.ReactNode, requireAdmin?: boolean }) => {
@@ -36,56 +38,66 @@ export default function App() {
         <div className="min-h-screen bg-[#020617] text-slate-200 font-sans selection:bg-purple-500/30">
           <Navbar />
           <main>
-            <Routes>
-              {/* Public Routes */}
-              <Route path="/" element={<Home />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
+            <ErrorBoundary>
+              <Routes>
+                {/* Public Routes */}
+                <Route path="/" element={<Home />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
 
-              {/* Customer Routes (Protected) */}
-              <Route 
-                path="/profile" 
-                element={
-                  <ProtectedRoute>
-                    <div className="p-8 text-center">Profile Page Coming Soon</div>
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/movie/:id" 
-                element={
-                  <ProtectedRoute>
-                    <MovieDetails />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/show/:id" 
-                element={
-                  <ProtectedRoute>
-                    <ShowDetails />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/checkout/:id" 
-                element={
-                  <ProtectedRoute>
-                    <Checkout />
-                  </ProtectedRoute>
-                } 
-              />
+                {/* Customer Routes (Protected) */}
+                <Route 
+                  path="/profile" 
+                  element={
+                    <ProtectedRoute>
+                      <div className="p-8 text-center">Profile Page Coming Soon</div>
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/tickets" 
+                  element={
+                    <ProtectedRoute>
+                      <Tickets />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/movie/:id" 
+                  element={
+                    <ProtectedRoute>
+                      <MovieDetails />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/show/:id" 
+                  element={
+                    <ProtectedRoute>
+                      <ShowDetails />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/checkout/:id" 
+                  element={
+                    <ProtectedRoute>
+                      <Checkout />
+                    </ProtectedRoute>
+                  } 
+                />
 
-              {/* Admin Routes (Protected, Admin Only) */}
-              <Route 
-                path="/admin/*" 
-                element={
-                  <ProtectedRoute requireAdmin>
-                    <div className="p-8 text-center text-red-400">Admin Layout Coming Soon</div>
-                  </ProtectedRoute>
-                } 
-              />
-            </Routes>
+                {/* Admin Routes (Protected, Admin Only) */}
+                <Route 
+                  path="/admin/*" 
+                  element={
+                    <ProtectedRoute requireAdmin>
+                      <div className="p-8 text-center text-red-400">Admin Layout Coming Soon</div>
+                    </ProtectedRoute>
+                  } 
+                />
+              </Routes>
+            </ErrorBoundary>
           </main>
         </div>
       </Router>

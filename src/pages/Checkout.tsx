@@ -2,9 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useLocation, useNavigate, Link } from 'react-router-dom';
 import { apiFetch } from '../utils/api';
 import type { Show, SeatAvailability } from '../types';
-import { GlassCard } from '../components/ui/GlassCard';
-import { Button } from '../components/ui/Button';
-import { QrCode, CheckCircle2, AlertCircle, Film, Calendar, MapPin, Ticket, ShieldCheck, ArrowLeft, Loader2, Sparkles } from 'lucide-react';
 
 export const Checkout: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -19,6 +16,7 @@ export const Checkout: React.FC = () => {
   const [isLoadingData, setIsLoadingData] = useState(!state?.show);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [showQRModal, setShowQRModal] = useState(false);
   const [bookingResult, setBookingResult] = useState<any>(null);
   const [error, setError] = useState('');
 
@@ -51,34 +49,47 @@ export const Checkout: React.FC = () => {
 
   if (isLoadingData) {
     return (
-      <div className="flex h-[calc(100vh-4rem)] items-center justify-center">
-        <div className="h-12 w-12 animate-spin rounded-full border-4 border-purple-500 border-t-transparent"></div>
+      <div className="flex h-[calc(100vh-4rem)] items-center justify-center bg-black">
+        <div className="h-12 w-12 animate-spin rounded-full border-4 border-[#FF6900] border-t-transparent"></div>
       </div>
     );
   }
 
   if (!show || selectedSeatIds.length === 0) {
     return (
-      <div className="container mx-auto px-4 py-16 max-w-md text-center">
-        <GlassCard className="p-8 border-red-500/30">
-          <AlertCircle className="w-16 h-16 text-red-400 mx-auto mb-4 animate-bounce" />
-          <h2 className="text-2xl font-bold text-white mb-2">Belum Ada Kursi Dipilih</h2>
-          <p className="text-slate-400 mb-6">
-            Silakan pilih jadwal dan kursi terlebih dahulu sebelum melanjutkan ke halaman pembayaran.
-          </p>
-          <Button onClick={() => navigate(id ? `/show/${id}` : '/')} className="w-full">
-            <ArrowLeft className="w-4 h-4 mr-2 inline" /> Kembali Pilih Kursi
-          </Button>
-        </GlassCard>
+      <div className="min-h-screen bg-black flex flex-col items-center justify-center px-4">
+        <h2 className="text-2xl font-bold text-white mb-4 tracking-widest uppercase">No Seats Selected</h2>
+        <button 
+          onClick={() => navigate(id ? `/show/${id}` : '/')}
+          className="bg-white text-black px-8 py-3 font-bold text-sm tracking-widest"
+        >
+          GO BACK
+        </button>
       </div>
     );
   }
 
   const selectedSeatNumbers = seats
-    .filter(s => selectedSeatIds.includes(s.seat.id))
-    .map(s => s.seat.nomor_kursi);
+    .filter(s => selectedSeatIds.includes(s.seat_id))
+    .map(s => s.nomor_kursi);
 
-  const totalPrice = selectedSeatIds.length * show.harga;
+  const totalPrice = selectedSeatIds.length * (show.harga || 50000);
+
+  // Formatting Date "02 July 2023"
+  const d = new Date(show.jam_tayang);
+  const day = d.getDate().toString().padStart(2, '0');
+  const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  const month = monthNames[d.getMonth()];
+  const year = d.getFullYear();
+  const formattedDate = `${day} ${month} ${year}`;
+
+  // Formatting Time "10.30pm"
+  let hours = d.getHours();
+  const minutes = d.getMinutes().toString().padStart(2, '0');
+  const ampm = hours >= 12 ? 'pm' : 'am';
+  hours = hours % 12;
+  hours = hours ? hours : 12; // the hour '0' should be '12'
+  const formattedTime = `${hours}.${minutes}${ampm}`;
 
   const handleConfirmPayment = async () => {
     setIsProcessing(true);
@@ -109,9 +120,11 @@ export const Checkout: React.FC = () => {
       });
 
       setBookingResult(createdBooking);
+      setShowQRModal(false);
       setIsSuccess(true);
     } catch (err: any) {
       setError(err.message || 'Terjadi kesalahan saat memproses pembayaran. Kursi mungkin sudah dipesan orang lain.');
+      setShowQRModal(false);
     } finally {
       setIsProcessing(false);
     }
@@ -119,193 +132,163 @@ export const Checkout: React.FC = () => {
 
   if (isSuccess) {
     return (
-      <div className="container mx-auto px-4 py-12 max-w-lg">
-        <GlassCard className="p-8 text-center relative overflow-hidden border-emerald-500/40 shadow-[0_0_50px_rgba(16,185,129,0.15)]">
-          <div className="absolute -top-24 -left-24 w-48 h-48 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none"></div>
-          <div className="absolute -bottom-24 -right-24 w-48 h-48 bg-purple-500/20 rounded-full blur-3xl pointer-events-none"></div>
-
-          <div className="w-20 h-20 bg-emerald-500/20 border border-emerald-500/50 rounded-full flex items-center justify-center mx-auto mb-6 text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.3)] animate-pulse">
-            <CheckCircle2 className="w-12 h-12" />
+      <div className="min-h-screen bg-black flex items-center justify-center p-4">
+        <div className="border border-white/20 p-12 text-center max-w-lg w-full">
+          <div className="w-16 h-16 border-2 border-white rounded-full flex items-center justify-center mx-auto mb-6 text-white">
+            ✓
           </div>
-
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 mb-4">
-            <Sparkles className="w-3.5 h-3.5" /> Pembayaran Berhasil
-          </span>
-
-          <h1 className="text-3xl font-bold text-white mb-2">Tiket Terbit!</h1>
-          <p className="text-slate-300 text-sm mb-8">
-            Terima kasih telah memesan tiket di <span className="text-[#FF6900] font-semibold">CineMaxxx</span>. Tiket elektronik Anda sudah aktif.
+          <h1 className="text-3xl font-bold text-white mb-2 tracking-widest uppercase">Payment Success</h1>
+          <p className="text-stone-400 mb-8 font-light tracking-wide">
+            Your booking #{bookingResult?.id || 'OK'} has been confirmed.
           </p>
-
-          <div className="bg-slate-900/80 border border-white/10 rounded-xl p-5 text-left mb-8 space-y-3">
-            <div className="flex justify-between items-center text-sm border-b border-white/10 pb-3">
-              <span className="text-slate-400">Kode Booking</span>
-              <span className="font-mono font-bold text-purple-400 text-base">#CMX-{bookingResult?.id || 'OK'}</span>
-            </div>
-            <div className="flex justify-between items-center text-sm">
-              <span className="text-slate-400">Film</span>
-              <span className="font-semibold text-white truncate max-w-[200px]">{show.movie.judul}</span>
-            </div>
-            <div className="flex justify-between items-center text-sm">
-              <span className="text-slate-400">Studio & Kursi</span>
-              <span className="font-semibold text-emerald-400">
-                {show.studio?.nama_studio || `Studio #${show.studio_id}`} ({selectedSeatNumbers.join(', ') || selectedSeatIds.join(', ')})
-              </span>
-            </div>
-            <div className="flex justify-between items-center text-sm pt-2 border-t border-white/10">
-              <span className="text-slate-400">Total Dibayar</span>
-              <span className="font-bold text-white">Rp {totalPrice.toLocaleString('id-ID')}</span>
-            </div>
+          <div className="space-y-4 mb-10 text-left border-y border-white/20 py-6">
+             <div className="flex justify-between text-stone-300 font-light">
+               <span>Movie</span>
+               <span className="text-white uppercase tracking-wider">{show.movie?.judul}</span>
+             </div>
+             <div className="flex justify-between text-stone-300 font-light">
+               <span>Seating</span>
+               <span className="text-white">{selectedSeatNumbers.join(', ')}</span>
+             </div>
           </div>
-
-          <div className="flex flex-col sm:flex-row gap-3">
-            <Link to="/" className="w-full">
-              <Button variant="outline" className="w-full">
-                Kembali ke Beranda
-              </Button>
-            </Link>
-          </div>
-        </GlassCard>
+          <Link to="/">
+            <button className="bg-white text-black px-12 py-3 font-bold text-sm tracking-widest w-full hover:bg-gray-200 transition-colors">
+              BACK TO HOME
+            </button>
+          </Link>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-5xl">
-      <Link to={`/show/${id}`} className="inline-flex items-center gap-2 text-slate-400 hover:text-white transition-colors mb-6 text-sm">
-        <ArrowLeft className="w-4 h-4" /> Kembali ke Pilih Kursi
-      </Link>
-
-      <h1 className="text-3xl font-bold text-white mb-8 flex items-center gap-3">
-        <ShieldCheck className="w-8 h-8 text-purple-400" /> Konfirmasi & Pembayaran
-      </h1>
-
+    <div className="min-h-screen bg-black text-white font-sans py-12 px-6 lg:px-24">
       {error && (
-        <div className="bg-red-500/10 border border-red-500/50 text-red-400 p-4 rounded-xl mb-6 flex items-center gap-3 animate-shake">
-          <AlertCircle className="w-6 h-6 flex-shrink-0" />
-          <p className="text-sm">{error}</p>
+        <div className="max-w-5xl mx-auto mb-8 border border-red-500/50 bg-red-500/10 text-red-400 p-4 text-center font-light tracking-wide">
+          {error}
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* Left Column: Order Summary */}
-        <div className="lg:col-span-7 space-y-6">
-          <GlassCard className="p-6 border-white/10">
-            <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2 border-b border-white/10 pb-4">
-              <Ticket className="w-5 h-5 text-purple-400" /> Ringkasan Pesanan
-            </h2>
-
-            <div className="flex gap-4 items-start mb-6">
-              {show.movie.poster_url ? (
-                <img src={show.movie.poster_url} alt={show.movie.judul} className="w-24 h-36 object-cover rounded-lg shadow-md border border-white/10 flex-shrink-0" />
-              ) : (
-                <div className="w-24 h-36 bg-slate-800 rounded-lg flex items-center justify-center flex-shrink-0 border border-white/10">
-                  <Film className="w-8 h-8 text-slate-600" />
-                </div>
-              )}
-              <div className="space-y-2 flex-1">
-                <h3 className="text-2xl font-bold text-white leading-tight">{show.movie.judul}</h3>
-                <div className="flex items-center gap-2 text-sm text-slate-300">
-                  <MapPin className="w-4 h-4 text-purple-400" />
-                  <span>{show.studio?.nama_studio || `Studio #${show.studio_id}`}</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-slate-300">
-                  <Calendar className="w-4 h-4 text-purple-400" />
-                  <span>
-                    {new Date(show.jam_tayang).toLocaleDateString('id-ID', {
-                      weekday: 'long',
-                      day: 'numeric',
-                      month: 'long',
-                      year: 'numeric',
-                    })}{' '}
-                    •{' '}
-                    {new Date(show.jam_tayang).toLocaleTimeString('id-ID', {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })} WIB
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-slate-900/60 rounded-xl p-4 border border-white/5 space-y-3">
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-slate-400">Harga Tiket</span>
-                <span className="text-slate-200">Rp {show.harga.toLocaleString('id-ID')} x {selectedSeatIds.length} kursi</span>
-              </div>
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-slate-400">Nomor Kursi</span>
-                <span className="font-semibold text-purple-400 bg-purple-500/10 px-2.5 py-0.5 rounded border border-purple-500/20">
-                  {selectedSeatNumbers.join(', ') || selectedSeatIds.join(', ')}
-                </span>
-              </div>
-              <div className="flex justify-between items-center text-sm border-t border-white/10 pt-3">
-                <span className="text-slate-400">Biaya Layanan & QRIS</span>
-                <span className="text-emerald-400 font-medium">GRATIS</span>
-              </div>
-            </div>
-
-            <div className="flex justify-between items-center mt-6 pt-4 border-t border-white/10">
-              <div>
-                <span className="text-xs text-slate-400 block uppercase tracking-wider">Total Pembayaran</span>
-                <span className="text-3xl font-extrabold text-white">Rp {totalPrice.toLocaleString('id-ID')}</span>
-              </div>
-              <span className="text-xs bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-3 py-1 rounded-full font-semibold">
-                Instant Confirmation
-              </span>
-            </div>
-          </GlassCard>
-        </div>
-
-        {/* Right Column: QR Payment */}
-        <div className="lg:col-span-5">
-          <GlassCard className="p-6 border-purple-500/30 text-center relative overflow-hidden shadow-[0_0_40px_rgba(147,51,234,0.1)]">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full blur-2xl pointer-events-none"></div>
-
-            <div className="flex items-center justify-center gap-2 text-purple-400 font-bold text-lg mb-2">
-              <QrCode className="w-6 h-6" /> Scan QRIS Pembayaran
-            </div>
-            <p className="text-xs text-slate-400 mb-6">
-              Mendukung semua aplikasi e-Wallet (Gopay, OVO, Dana, ShopeePay) dan Mobile Banking.
-            </p>
-
-            {/* QR Image Container */}
-            <div className="bg-white p-4 rounded-2xl shadow-2xl inline-block mb-6 border-4 border-purple-500/20 hover:scale-105 transition-transform duration-300">
-              <img
-                src="/d23306ff4dcc129c4742f50175614047ae7a0661.png"
-                alt="QRIS CineMaxxx"
-                className="w-56 h-56 object-contain mx-auto rounded-lg"
-              />
-            </div>
-
-            <div className="bg-purple-500/10 border border-purple-500/20 rounded-xl p-3.5 mb-6 text-left">
-              <p className="text-xs text-purple-300 leading-relaxed font-medium">
-                💡 <strong className="text-white">Cara Bayar:</strong> Buka aplikasi m-Banking atau e-Wallet Anda, pilih fitur Scan QR/QRIS, lalu arahkan kamera ke kode QR di atas.
-              </p>
-            </div>
-
-            <Button
-              onClick={handleConfirmPayment}
-              disabled={isProcessing}
-              className="w-full h-14 text-lg font-bold bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 shadow-lg shadow-emerald-600/30"
-            >
-              {isProcessing ? (
-                <>
-                  <Loader2 className="w-5 h-5 mr-2 animate-spin inline" /> Memverifikasi Pembayaran...
-                </>
-              ) : (
-                <>
-                  <CheckCircle2 className="w-5 h-5 mr-2 inline" /> Saya Sudah Bayar
-                </>
-              )}
-            </Button>
+      {/* Top Section: Movie Info */}
+      <div className="max-w-5xl mx-auto flex flex-col md:flex-row gap-12 lg:gap-24 mb-16">
+        {show.movie?.poster_url ? (
+          <img 
+            src={show.movie.poster_url} 
+            alt={show.movie.judul} 
+            className="w-full md:w-[280px] h-auto object-cover border border-white/10" 
+          />
+        ) : (
+          <div className="w-full md:w-[280px] h-[400px] bg-stone-900 border border-white/10 flex items-center justify-center">
+            NO POSTER
+          </div>
+        )}
+        
+        <div className="flex-1 py-4">
+          <h1 className="text-3xl md:text-4xl font-bold uppercase tracking-[0.2em] mb-12 text-white/90">
+            {show.movie?.judul || 'MOVIE TITLE'}
+          </h1>
+          
+          <div className="grid grid-cols-[100px_1fr] md:grid-cols-[140px_1fr] gap-y-6 text-xl text-stone-300 font-light">
+            <span>Date</span>
+            <span className="text-white">: {formattedDate}</span>
             
-            <p className="text-[11px] text-slate-500 mt-3">
-              Klik tombol di atas setelah Anda berhasil melakukan transfer via QRIS.
-            </p>
-          </GlassCard>
+            <span>Location</span>
+            <span className="text-white">: {show.studio?.nama_studio || `Studio #${show.studio_id}`}</span>
+            
+            <span>Type</span>
+            <span className="text-white">: Deluxe</span>
+            
+            <span>Time</span>
+            <span className="text-white">: {formattedTime}</span>
+            
+            <span>Seating</span>
+            <span className="text-white">: {selectedSeatNumbers.join(', ')}</span>
+          </div>
         </div>
       </div>
+
+      {/* Middle Section: Summary Table */}
+      <div className="max-w-5xl mx-auto">
+        <div className="grid grid-cols-2 text-center border-y border-white/40 py-3 text-xl text-stone-300 font-light tracking-wider">
+          <div>Quantity</div>
+          <div>Total</div>
+        </div>
+        
+        <div className="grid grid-cols-2 text-center py-8 text-3xl font-light text-white/90">
+          <div>{selectedSeatIds.length}</div>
+          <div>{totalPrice.toLocaleString('id-ID')}</div>
+        </div>
+
+        <div className="grid grid-cols-2 mt-2">
+          <div></div>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-12">
+            <span className="text-xl text-stone-300 font-light tracking-wide">Grand Total</span>
+            <span className="text-2xl font-light border-y border-white/60 py-2 min-w-[200px] text-center">
+              RP {totalPrice.toLocaleString('id-ID')}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom Section: Payment Methods & Actions */}
+      <div className="max-w-5xl mx-auto mt-24 flex flex-col md:flex-row justify-between items-end gap-12">
+        
+        {/* Payment Methods Box */}
+        <div className="border border-white/30 p-8 w-full md:w-[340px] space-y-8 bg-black/50">
+          {/* Disabled options as per user request to only show QRIS, or just show QRIS alone. User said "cukup tampilkan qris saja", so I will ONLY show QRIS. */}
+          <label className="flex items-center gap-6 cursor-pointer">
+            <div className="relative flex items-center justify-center w-6 h-6 rounded-full border border-white">
+              <div className="w-3 h-3 rounded-full bg-[#4285F4]"></div>
+            </div>
+            <span className="text-2xl font-light tracking-wide">QRIS</span>
+          </label>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex gap-6 w-full md:w-auto">
+          <button 
+            onClick={() => navigate(`/show/${id}`)}
+            className="flex-1 md:flex-none bg-white text-black px-10 py-3 text-sm font-bold tracking-widest hover:bg-gray-200 transition-colors"
+          >
+            CANCEL
+          </button>
+          <button 
+            onClick={() => setShowQRModal(true)}
+            className="flex-1 md:flex-none bg-white text-black px-10 py-3 text-sm font-bold tracking-widest hover:bg-gray-200 transition-colors"
+          >
+            CONFIRM
+          </button>
+        </div>
+      </div>
+
+      {/* Temporary QR Modal */}
+      {showQRModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm px-4">
+          <div className="bg-[#111] border border-white/20 p-10 max-w-sm w-full text-center relative shadow-2xl">
+            <button 
+              onClick={() => setShowQRModal(false)}
+              className="absolute top-4 right-6 text-white/50 hover:text-white text-2xl font-light"
+            >
+              &times;
+            </button>
+            <h3 className="text-xl font-bold tracking-widest uppercase mb-2">Scan to Pay</h3>
+            <p className="text-stone-400 font-light text-sm mb-8">Scan this QR Code using your e-Wallet app</p>
+            
+            <div className="bg-white p-4 mx-auto mb-8 w-48 h-48 flex items-center justify-center">
+              <img src="/d23306ff4dcc129c4742f50175614047ae7a0661.png" alt="QR Code" className="max-w-full max-h-full opacity-80 mix-blend-multiply" />
+            </div>
+
+            <button 
+              onClick={handleConfirmPayment}
+              disabled={isProcessing}
+              className="bg-white text-black w-full py-4 text-sm font-bold tracking-widest disabled:opacity-50 transition-colors"
+            >
+              {isProcessing ? 'PROCESSING...' : 'SIMULATE SUCCESS'}
+            </button>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };
