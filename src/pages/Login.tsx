@@ -48,9 +48,9 @@ export const Login: React.FC = () => {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <Input
-            label="Username (Email/Name)"
+            label="Email"
             type="text"
-            placeholder="Enter your username"
+            placeholder="Enter your Email"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             leftIcon={<User className="w-4 h-4" />}
@@ -65,7 +65,7 @@ export const Login: React.FC = () => {
             leftIcon={<Lock className="w-4 h-4" />}
             required
           />
-          
+
           <Button type="submit" className="w-full mt-6" isLoading={isLoading}>
             Log In
           </Button>
