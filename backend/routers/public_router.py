@@ -18,4 +18,7 @@ from datetime import datetime
 
 @router.get("/shows", response_model=List[schemas.Show])
 def get_active_shows(db: Session = Depends(get_db)):
-    return db.query(models.Show).filter(models.Show.jam_tayang >= datetime.now()).all()
+    return db.query(models.Show).join(models.Studio).filter(
+        models.Show.jam_tayang >= datetime.now(),
+        models.Studio.status != 'Maintenance'
+    ).all()

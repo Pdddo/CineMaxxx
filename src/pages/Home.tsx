@@ -72,15 +72,9 @@ export const Home: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="relative rounded-2xl overflow-hidden border border-white/10 shadow-2xl group cursor-pointer aspect-[21/9]">
               <img src="/poster_promosi1.png" alt="Promo 1" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-6">
-                <span className="text-sm font-semibold text-[#FF6900] bg-black/80 px-3 py-1 rounded-full border border-[#FF6900]/30">Lihat Promo</span>
-              </div>
             </div>
             <div className="relative rounded-2xl overflow-hidden border border-white/10 shadow-2xl group cursor-pointer aspect-[21/9]">
               <img src="/poster_promosi2.png" alt="Promo 2" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-6">
-                <span className="text-sm font-semibold text-[#FF6900] bg-black/80 px-3 py-1 rounded-full border border-[#FF6900]/30">Lihat Promo</span>
-              </div>
             </div>
           </div>
         </div>

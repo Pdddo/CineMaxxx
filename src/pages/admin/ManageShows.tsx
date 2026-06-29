@@ -451,7 +451,7 @@ export const ManageShows: React.FC = () => {
                   className="w-full bg-[#111] border border-white/10 text-white rounded px-4 py-2 focus:border-[#FF6900]/50 focus:outline-none"
                 >
                   <option value="">Select Studio</option>
-                  {studios.map(s => <option key={s.id} value={s.id}>{s.nama_studio} ({s.tipe})</option>)}
+                  {studios.filter(s => s.status !== 'Maintenance').map(s => <option key={s.id} value={s.id}>{s.nama_studio} ({s.tipe})</option>)}
                 </select>
               </div>
 

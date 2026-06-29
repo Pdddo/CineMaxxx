@@ -65,16 +65,7 @@ export const SalesReports: React.FC = () => {
           <h1 className="text-2xl md:text-3xl font-bold text-white mb-1">Sales Overview</h1>
           <p className="text-stone-400 text-sm">Real-time performance metrics and transaction history.</p>
         </div>
-        <div className="flex items-center gap-4 mt-4 md:mt-0">
-          <button className="flex items-center gap-2 px-4 py-2 bg-transparent border border-white/20 text-stone-300 rounded text-sm hover:bg-white/5 transition-colors">
-            <Calendar size={16} />
-            This Month
-          </button>
-          <button className="flex items-center gap-2 px-4 py-2 bg-transparent border border-[#FF6900]/50 text-[#FF6900] rounded text-sm hover:bg-[#FF6900]/10 transition-colors">
-            <Download size={16} />
-            Export
-          </button>
-        </div>
+        {/* Buttons removed as per user request */}
       </div>
 
       {/* Top Cards */}
@@ -115,14 +106,6 @@ export const SalesReports: React.FC = () => {
       <div className="bg-[#1C1A17] border border-white/5 rounded-xl overflow-hidden">
         <div className="p-6 flex justify-between items-center border-b border-white/5">
           <h3 className="text-white font-medium">Recent Transactions</h3>
-          <div className="relative">
-            <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 text-stone-500" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-            <input 
-              type="text" 
-              placeholder="Search ID..." 
-              className="bg-[#111111] border border-white/10 text-sm text-white rounded pl-9 pr-4 py-1.5 focus:outline-none focus:border-[#FF6900]/50"
-            />
-          </div>
         </div>
         
         <div className="overflow-x-auto">
