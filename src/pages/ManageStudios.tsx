@@ -274,10 +274,7 @@ export const ManageStudios: React.FC = () => {
             </div>
 
             {/* Footer buttons */}
-            <div className="grid grid-cols-2 border-t border-white/5">
-              <button className="py-3 text-xs text-stone-400 hover:text-white hover:bg-white/[0.02] transition-colors flex items-center justify-center gap-2 border-r border-white/5">
-                <LayoutGrid size={14} /> LAYOUT
-              </button>
+            <div className="grid grid-cols-1 border-t border-white/5">
               <button
                 onClick={() => { setSelectedStudio(studio); setIsSeatModalOpen(true); }}
                 className="py-3 text-xs text-stone-400 hover:text-white hover:bg-white/[0.02] transition-colors flex items-center justify-center gap-2"
