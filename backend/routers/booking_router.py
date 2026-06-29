@@ -40,6 +40,10 @@ def create_booking(booking: schemas.BookingCreate, db: Session = Depends(get_db)
     if not show:
         raise HTTPException(status_code=404, detail="Jadwal (Show) tidak ditemukan")
     
+    from datetime import datetime
+    if show.jam_tayang < datetime.now():
+        raise HTTPException(status_code=400, detail="Tidak bisa membeli tiket untuk jadwal yang sudah lewat")
+    
     booked_seats_query = db.query(models.BookingDetail.seat_id) \
         .join(models.Booking) \
         .filter(models.Booking.show_id == booking.show_id) \

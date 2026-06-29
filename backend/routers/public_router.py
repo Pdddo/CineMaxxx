@@ -14,6 +14,8 @@ router = APIRouter(
 def get_public_movies(db: Session = Depends(get_db)):
     return db.query(models.Movie).all()
 
+from datetime import datetime
+
 @router.get("/shows", response_model=List[schemas.Show])
 def get_active_shows(db: Session = Depends(get_db)):
-    return db.query(models.Show).all()
+    return db.query(models.Show).filter(models.Show.jam_tayang >= datetime.now()).all()

@@ -48,7 +48,7 @@ export const Home: React.FC = () => {
     return 0;
   });
   const totalPages = Math.ceil(displayMovies.length / itemsPerPage);
-  
+
   const currentMovies = displayMovies.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
@@ -57,7 +57,7 @@ export const Home: React.FC = () => {
   return (
     <div className="min-h-screen bg-black text-white pb-12 pt-8 font-sans">
       <div className="max-w-6xl mx-auto px-4">
-        
+
         {error && (
           <div className="bg-red-500/10 border border-red-500/50 text-red-400 p-4 rounded-xl mb-8 text-center">
             {error}
@@ -96,7 +96,7 @@ export const Home: React.FC = () => {
             {currentMovies.map((movie, idx) => {
               const movieShows = shows.filter(s => s.movie_id === movie.id);
               const posterSrc = movie.poster_url;
-              
+
               return (
                 <motion.div
                   key={movie.id}
@@ -107,9 +107,9 @@ export const Home: React.FC = () => {
                 >
                   <div className="relative aspect-[3/4] overflow-hidden rounded-md bg-slate-900 shadow-lg">
                     {movie.poster_url ? (
-                      <img 
-                        src={posterSrc} 
-                        alt={movie.judul} 
+                      <img
+                        src={posterSrc}
+                        alt={movie.judul}
                         className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
                       />
                     ) : (
@@ -118,18 +118,17 @@ export const Home: React.FC = () => {
                         <span className="text-sm">No Poster</span>
                       </div>
                     )}
-                    
+
                     {/* Info badge */}
                     <div className="absolute top-3 right-3 w-8 h-8 bg-black/60 backdrop-blur-md rounded-full flex items-center justify-center border border-white/20">
                       <AlertCircle className="w-5 h-5 text-yellow-500" />
                     </div>
                   </div>
 
-                  <Link 
+                  <Link
                     to={movieShows.length > 0 ? `/movie/${movie.id}` : `#`}
-                    className={`mt-4 w-full h-10 flex items-center justify-center rounded-sm font-bold text-black transition-colors ${
-                      movieShows.length > 0 ? 'bg-[#FF6900] hover:bg-[#e55e00]' : 'bg-slate-600 cursor-not-allowed'
-                    }`}
+                    className={`mt-4 w-full h-10 flex items-center justify-center rounded-sm font-bold text-black transition-colors ${movieShows.length > 0 ? 'bg-[#FF6900] hover:bg-[#e55e00]' : 'bg-slate-600 cursor-not-allowed'
+                      }`}
                     onClick={(e) => {
                       if (movieShows.length === 0) e.preventDefault();
                     }}
@@ -145,15 +144,15 @@ export const Home: React.FC = () => {
         {/* Pagination Functional */}
         {totalPages > 1 && (
           <div className="flex items-center justify-center gap-4 mt-16 mb-16 text-slate-400 font-medium tracking-widest text-sm">
-            <span 
+            <span
               className={`cursor-pointer ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : 'hover:text-white'}`}
               onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
             >
               &lt;
             </span>
-            
+
             {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-              <span 
+              <span
                 key={page}
                 className={`cursor-pointer ${currentPage === page ? 'text-[#FF6900] font-bold border-b-2 border-[#FF6900]' : 'hover:text-white'}`}
                 onClick={() => {
@@ -165,7 +164,7 @@ export const Home: React.FC = () => {
               </span>
             ))}
 
-            <span 
+            <span
               className={`cursor-pointer ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : 'hover:text-white'}`}
               onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
             >
@@ -177,7 +176,7 @@ export const Home: React.FC = () => {
         {/* Seating Experience Section */}
         <div className="mt-20">
           <h2 className="text-3xl font-bold mb-8">
-            Seating<br/>Experience
+            Seating<br />Experience
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
             <div className="aspect-[4/3] bg-slate-800 overflow-hidden">
